@@ -1,0 +1,96 @@
+# 插件前缀
+prefix: '&b性能优化器>>>'
+
+# 生物堆叠器
+stacker: true
+# tps低于这个阈值开始堆叠生物
+# tps高于这个阈值开始分离生物
+tpsCheck: 12
+# 分离检测区间
+# 调大该值让服务器减少压力
+# 但是生物分离的时间会变慢
+# 单位:tick
+split: 200
+# 堆叠生物列表
+# 不知道生物名?点击下面链接
+# https://bukkit.windit.net/javadoc/org/bukkit/entity/EntityType.html
+stackerList:
+  - FOX
+  - VILLAGER
+  - BEE
+  - COW
+  - SHEEP
+  - PIG
+  - CHICKEN
+
+# 刷怪笼限制
+spawner: true
+# 刷怪笼速率(0~100)
+# 数值越大刷怪越多
+spawnerChange: 60
+
+# 生物生成限制
+mob: true
+# 以100x100范围内
+# 每spawntime分钟内
+# 最大刷怪数量为spawnLimit
+spawnTime: 10
+spawnLimit: 3
+# 限制生物刷怪速率
+spawnChange: 20
+# 区块最大数量限制
+# 一个区块超出数量
+# 将不再刷出该生物
+chunkLimit: 20
+# 限制怪物列表
+# 不知道生物名?点击下面链接
+# https://bukkit.windit.net/javadoc/org/bukkit/entity/EntityType.html
+mobList:
+  - PHANTOM
+  - RAVAGER
+  - PILLAGER
+  - GUARDIAN
+  - VILLAGER
+  - ZOMBIFIED_PIGLIN
+  - FOX
+  - WITCH
+  - VEX
+  - EVOKER
+  - BEE
+
+# 红石限制器
+# 不对压力板或按钮开门有影响
+# tps高于16 无限制任何红石
+# tps低于16 限制高度200以上红石
+# tps低于14 限制高度150以上红石
+# tps低于12 限制高度100以上红石
+# tps低于10 限制全部红石
+redstone: true
+
+# 高频限制器
+redstoneClock: true
+# 数值越低则限制力度越大
+# 多少毫秒秒内允许触发一次
+redstoneDely: 600
+# 触发频率过低多少次后清除
+redstoneHold: 20
+# 清除红石时雷击效果
+redstoneLightning: true
+# 后台是否可见清除坐标
+redstoneWaring: true
+# 关闭高频检测世界
+redstoneDisabledWorld:
+  - city
+# 限制活塞推动侦测器(高频飞行器)
+observerPiston: false
+
+# 防止雪球实体禁人塔
+# 雪球应该在丢出后多久被清除
+# 单位:tick
+snowball: true
+snowballDisappearDely: 60
+
+# 防止船实体禁人塔
+# 一个区块内最大船数量
+boatLimit: true
+chunkBoatLimit: 8
