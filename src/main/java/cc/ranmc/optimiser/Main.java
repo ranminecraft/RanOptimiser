@@ -1,4 +1,4 @@
-package cn.ranmc;
+package cc.ranmc.optimiser;
 
 import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -23,12 +22,9 @@ import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.*;
 
 public class Main extends JavaPlugin implements Listener {
@@ -40,24 +36,25 @@ public class Main extends JavaPlugin implements Listener {
     //TPS
     private Double tps = 19.99;
     private Double tpsCheck = 0.0;
-    //最新版本
-    private String lastestVersion = "检查失败";
     //生物堆叠器
     private List<String> stackerList;
     //限制生物过多
     private Map<String, Integer> mob = new HashMap<>();
     private int spawnTime = 1;
     //红石高频
-    private Map<Location, Long> redstone = new HashMap<>();
+    private final Map<Location, Long> redstone = new HashMap<>();
     private Map<Location, Integer> warning = new HashMap<>();
     //不会限制的生成方式
-    private static List<CreatureSpawnEvent.SpawnReason> REASONS = Arrays.asList(
-            new CreatureSpawnEvent.SpawnReason[]{
-                    CreatureSpawnEvent.SpawnReason.CUSTOM,
-                    CreatureSpawnEvent.SpawnReason.COMMAND,
-                    CreatureSpawnEvent.SpawnReason.SPAWNER_EGG,
-                    CreatureSpawnEvent.SpawnReason.CURED
-            });
+    private static final List<CreatureSpawnEvent.SpawnReason> REASONS = Arrays.asList(
+            CreatureSpawnEvent.SpawnReason.METAMORPHOSIS,
+            CreatureSpawnEvent.SpawnReason.BUILD_IRONGOLEM,
+            CreatureSpawnEvent.SpawnReason.BUILD_SNOWMAN,
+            CreatureSpawnEvent.SpawnReason.BUILD_WITHER,
+            CreatureSpawnEvent.SpawnReason.BEEHIVE,
+            CreatureSpawnEvent.SpawnReason.CUSTOM,
+            CreatureSpawnEvent.SpawnReason.COMMAND,
+            CreatureSpawnEvent.SpawnReason.SPAWNER_EGG,
+            CreatureSpawnEvent.SpawnReason.CURED);
 
     @Override
     public void onEnable() {
@@ -96,21 +93,21 @@ public class Main extends JavaPlugin implements Listener {
             if (tps >= tpsCheck) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     Entity[] entities = player.getLocation().getChunk().getEntities();
-                    for (int i = 0; i < entities.length; i++) {
-                        if (stackerList.contains(entities[i].getType().name())) {
-                            String name = entities[i].getCustomName();
+                    for (Entity entity : entities) {
+                        if (stackerList.contains(entity.getType().name())) {
+                            String name = entity.getCustomName();
                             if (name != null && name.contains(color("&cx"))) {
                                 int count = 0;
                                 try {
-                                    count += Integer.parseInt(entities[i].getCustomName().replace(color("&cx"), ""));
-                                } catch (NumberFormatException e) {
+                                    count += Integer.parseInt(entity.getCustomName().replace(color("&cx"), ""));
+                                } catch (NumberFormatException ignored) {
                                 }
                                 for (int ii = 1; ii < count; ii++) {
-                                    Location location = entities[i].getLocation();
-                                    location.getWorld().spawnEntity(location, entities[i].getType());
+                                    Location location = entity.getLocation();
+                                    Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
                                 }
                             }
-                            entities[i].setCustomName(null);
+                            entity.setCustomName(null);
                         }
                     }
                 }
@@ -129,7 +126,6 @@ public class Main extends JavaPlugin implements Listener {
 
     /**
      * 雪球刷怪塔
-     * @param event
      */
     @EventHandler
     public void onProjectileLaunchEvent(ProjectileLaunchEvent event) {
@@ -145,27 +141,25 @@ public class Main extends JavaPlugin implements Listener {
         if (getConfig().getBoolean("boatLimit", true) && et.toString().contains("BOAT")) {
             Entity[] entities = en.getLocation().getChunk().getEntities();
             int liveCount = 0;
-            for (int i = 0; i < entities.length; i++) {
-                if (entities[i].getType().toString().contains("BOAT")) {
+            for (Entity entity : entities) {
+                if (entity.getType().toString().contains("BOAT")) {
                     liveCount++;
                 }
             }
             if (liveCount >= getConfig().getInt("chunkBoatLimit")) {
                 event.setCancelled(true);
-                return;
             }
         }
     }
 
     /**
      * 生物生成时间
-     * @param event
      */
 
     @EventHandler
     public void onEntitySpawnEvent(CreatureSpawnEvent event) {
         Entity en = event.getEntity();
-        if (event.isCancelled() || en == null) return;
+        if (event.isCancelled()) return;
 
         // 限制刷怪笼
         if (getConfig().getBoolean("spawner") && event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.SPAWNER)) {
@@ -198,8 +192,8 @@ public class Main extends JavaPlugin implements Listener {
 
                     Entity[] entities = en.getLocation().getChunk().getEntities();
                     int liveCount = 0;
-                    for (int i = 0; i < entities.length; i++) {
-                        if (entities[i].getType() == et) {
+                    for (Entity entity : entities) {
+                        if (entity.getType() == et) {
                             liveCount++;
                         }
                     }
@@ -208,7 +202,7 @@ public class Main extends JavaPlugin implements Listener {
                         return;
                     }
 
-                    String name = lx + loc.getWorld().getName() + lz + et;
+                    String name = lx + Objects.requireNonNull(loc.getWorld()).getName() + lz + et;
                     int count = 0;
                     if (mob.containsKey(name)) count = mob.get(name);
                     if (count >= getConfig().getInt("spawnLimit")) {
@@ -222,7 +216,7 @@ public class Main extends JavaPlugin implements Listener {
 
         }
 
-        //生物堆叠器
+        // 生物堆叠器
         if (getConfig().getBoolean("stacker") && tps < tpsCheck) {
             if (stackerList.contains(et.toString())) {
                 Entity[] entities = en.getLocation().getChunk().getEntities();
@@ -249,8 +243,8 @@ public class Main extends JavaPlugin implements Listener {
                 } else {
                     int baseCount = 0;
                     try {
-                        baseCount += Integer.parseInt(entities[base].getCustomName().replace(color("&cx"),""));
-                    } catch (NumberFormatException e) {
+                        baseCount += Integer.parseInt(Objects.requireNonNull(entities[base].getCustomName()).replace(color("&cx"),""));
+                    } catch (NumberFormatException ignored) {
                     }
                     count += baseCount;
                     if (!entities[base].isDead() && count>1) entities[base].setCustomName(color("&cx")+count);
@@ -269,12 +263,12 @@ public class Main extends JavaPlugin implements Listener {
                 int count = 0;
                 try {
                     count += Integer.parseInt(name.replace(color("&cx"),""));
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ignored) {
                 }
                 if (count>1) {
                     count--;
                     Location location = entity.getLocation();
-                    LivingEntity newMob = (LivingEntity) location.getWorld().spawnEntity(location, entity.getType());
+                    LivingEntity newMob = (LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
                     if (count>1) newMob.setCustomName(color("&cx")+count);
                 }
             }
@@ -299,15 +293,13 @@ public class Main extends JavaPlugin implements Listener {
 
     private void removeRedstoneBlock(Block block) {
         block.setType(Material.AIR);
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
-            block.setType(Material.AIR);
-        });
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> block.setType(Material.AIR));
     }
 
     private void redstoneCheck(Location loc) {
         if (getConfig().getBoolean("redstoneClock") &&
                 redstone.containsKey(loc) &&
-                !getConfig().getStringList("redstoneDisabledWorld").contains(loc.getWorld().getName())) {
+                !getConfig().getStringList("redstoneDisabledWorld").contains(Objects.requireNonNull(loc.getWorld()).getName())) {
             long time = System.currentTimeMillis() - redstone.get(loc);
             long redstoneDely = getConfig().getInt("redstoneDely", 500);
             if (time > 1 && time < redstoneDely) {
@@ -334,7 +326,6 @@ public class Main extends JavaPlugin implements Listener {
 
     /**
      * 限制红石
-     * @param event
      */
     @EventHandler
     public void onBlockRedstoneEvent(BlockRedstoneEvent event) {
@@ -355,7 +346,6 @@ public class Main extends JavaPlugin implements Listener {
             }
             if (tps < 10) {
                 event.setNewCurrent(0);
-                return;
             }
         }
 
@@ -363,14 +353,9 @@ public class Main extends JavaPlugin implements Listener {
 
     /**
      * 指令输入
-     * @param sender
-     * @param cmd
-     * @param label
-     * @param args
-     * @return
      */
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, Command cmd, @NotNull String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("ro")) {
             if (args.length == 1 && args[0].equalsIgnoreCase("reload")){
                 if (sender.hasPermission("ro.admin")) {
@@ -411,19 +396,7 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     /**
-     * 执行指令
-     * @param command
-     * @return
-     */
-    /*
-    public void run(String command) {
-        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
-    }*/
-
-    /**
      * 文本颜色
-     * @param text
-     * @return
      */
     private static String color(String text){
         return text.replace("&","§");
@@ -431,38 +404,8 @@ public class Main extends JavaPlugin implements Listener {
 
     /**
      * 后台信息
-     * @param msg
      */
     public void outPut(String msg){
         Bukkit.getConsoleSender().sendMessage(color(msg));
-    }
-
-    /**
-     * 公屏信息
-     * @param msg
-     */
-    /*
-    public void say(String msg){
-        Bukkit.broadcastMessage(color(msg));
-    }*/
-
-    /**
-     * 检查更新
-     */
-    public void updateCheck() {
-        try {
-            URL url = new URL("https://www.ranmc.cn/plugins/ranOptimiser.txt");
-            InputStream is = url.openStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-            lastestVersion = br.readLine();
-            if (getDescription().getVersion().equals(lastestVersion)) {
-                outPut(prefix + color("&a当前已是最新版本"));
-            } else {
-                outPut(prefix + color("&c检测到新版本" + lastestVersion));
-            }
-        } catch (Exception e) {
-            outPut(prefix + color("&c检查更新失败"));
-        }
-
     }
 }
