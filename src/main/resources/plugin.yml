@@ -3,9 +3,10 @@ main: cc.ranmc.optimiser.Main
 description: '阿然定制24k纯钛合金超级无敌终终终终极版的性能优化插件'
 website: https://www.ranmc.cc/
 author: Ranica
-version: 2.8
+version: 3.0
 api-version: 1.13
 softdepend: [PlaceholderAPI]
+folia-supported: true
 
 permissions: 
   ro.user:
