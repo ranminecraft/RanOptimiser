@@ -3,6 +3,7 @@ package cc.ranmc.optimiser;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -109,11 +110,11 @@ public class Main extends JavaPlugin implements Listener {
                 Entity[] entities = player.getLocation().getChunk().getEntities();
                 for (Entity entity : entities) {
                     if (stackerList.contains(entity.getType().name())) {
-                        String name = entity.getCustomName();
+                        String name = getEntityName(entity);
                         if (name != null && name.contains(color("&cx"))) {
                             int count = 0;
                             try {
-                                count += Integer.parseInt(entity.getCustomName().replace(color("&cx"), ""));
+                                count += Integer.parseInt(name.replace(color("&cx"), ""));
                             } catch (NumberFormatException ignored) {
                             }
                             for (int ii = 1; ii < count; ii++) {
@@ -121,7 +122,11 @@ public class Main extends JavaPlugin implements Listener {
                                 Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
                             }
                         }
-                        entity.setCustomName(null);
+                        if (folia) {
+                            entity.customName(null);
+                        } else {
+                            entity.setCustomName(null);
+                        }
                     }
                 }
             }
@@ -271,29 +276,49 @@ public class Main extends JavaPlugin implements Listener {
                 int base = 0;
                 for (int i = 0; i < entities.length; i++) {
                     if (et.equals(entities[i].getType())) {
-                        String name = entities[i].getCustomName();
+                        String name = getEntityName(entities[i]);
                         if (name==null) {
                             liveCount++;
                             if (liveCount > 1) {
                                 entities[i].remove();
                                 count++;
-                            } else if (liveCount==1) log = i;
+                            } else if (liveCount == 1) log = i;
                         } else if (name.contains(color("&cx"))) base = i;
                     }
                 }
                 if (base==0) {
                     count++;
-                    if (!entities[log].isDead() && count>1) entities[log].setCustomName(color("&cx")+count);
+                    if (!entities[log].isDead() && count>1) setEntityName(entities[log], color("&cx")+count);
                 } else {
                     int baseCount = 0;
                     try {
-                        baseCount += Integer.parseInt(Objects.requireNonNull(entities[base].getCustomName()).replace(color("&cx"),""));
+                        baseCount += Integer.parseInt(Objects.requireNonNull(getEntityName(entities[base]).replace(color("&cx"),"")));
                     } catch (NumberFormatException ignored) {
                     }
                     count += baseCount;
-                    if (!entities[base].isDead() && count>1) entities[base].setCustomName(color("&cx")+count);
+                    if (!entities[base].isDead() && count>1) setEntityName(entities[base], color("&cx")+count);
                 }
             }
+        }
+    }
+
+    public void setEntityName(Entity entity, String name) {
+        if (folia) {
+            if (name == null) {
+                entity.customName(null);
+            } else {
+                entity.customName(Component.text(name));
+            }
+        } else {
+            entity.setCustomName(name);
+        }
+    }
+
+    public String getEntityName(Entity entity) {
+        if (folia) {
+            return String.valueOf(entity.customName());
+        } else {
+            return entity.getCustomName();
         }
     }
 
@@ -302,7 +327,7 @@ public class Main extends JavaPlugin implements Listener {
         //生物堆叠器分离
         if (getConfig().getBoolean("stacker")) {
             Entity entity = event.getEntity();
-            String name = entity.getCustomName();
+            String name = getEntityName(entity);
             if (stackerList.contains(event.getEntityType().toString()) && name!=null && name.contains(color("&cx"))) {
                 int count = 0;
                 try {
@@ -313,7 +338,7 @@ public class Main extends JavaPlugin implements Listener {
                     count--;
                     Location location = entity.getLocation();
                     LivingEntity newMob = (LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
-                    if (count>1) newMob.setCustomName(color("&cx")+count);
+                    if (count>1) setEntityName(newMob, color("&cx") + count);
                 }
             }
         }
