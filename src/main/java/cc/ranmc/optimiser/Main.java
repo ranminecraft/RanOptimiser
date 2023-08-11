@@ -105,7 +105,7 @@ public class Main extends JavaPlugin implements Listener {
             //e.printStackTrace();
         }
 
-        if (tps >= tpsCheck) {
+        if (getConfig().getBoolean("stacker") && tps >= tpsCheck) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 Entity[] entities = player.getLocation().getChunk().getEntities();
                 for (Entity entity : entities) {
