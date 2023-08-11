@@ -316,6 +316,7 @@ public class Main extends JavaPlugin implements Listener {
 
     public String getEntityName(Entity entity) {
         if (folia) {
+            if (entity.customName() == null) return null;
             return String.valueOf(entity.customName());
         } else {
             return entity.getCustomName();
