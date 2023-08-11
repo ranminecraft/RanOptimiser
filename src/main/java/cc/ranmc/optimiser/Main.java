@@ -122,11 +122,7 @@ public class Main extends JavaPlugin implements Listener {
                                 Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
                             }
                         }
-                        if (folia) {
-                            entity.customName(null);
-                        } else {
-                            entity.setCustomName(null);
-                        }
+                        setEntityName(entity, null);
                     }
                 }
             }
@@ -277,7 +273,7 @@ public class Main extends JavaPlugin implements Listener {
                 for (int i = 0; i < entities.length; i++) {
                     if (et.equals(entities[i].getType())) {
                         String name = getEntityName(entities[i]);
-                        if (name==null) {
+                        if (name == null) {
                             liveCount++;
                             if (liveCount > 1) {
                                 entities[i].remove();
