@@ -64,8 +64,8 @@ public class Main extends JavaPlugin implements Listener {
     public void onEnable() {
         outPut("&e-----------------------");
         outPut("&b性能优化器 &dBy阿然");
-        outPut("&b插件版本:"+getDescription().getVersion());
-        outPut("&b服务器版本:"+getServer().getVersion());
+        outPut("&b插件版本:" + getDescription().getVersion());
+        outPut("&b服务器版本:" + getServer().getVersion());
         outPut("&cQQ 2263055528");
         outPut("&e-----------------------");
 
@@ -82,15 +82,15 @@ public class Main extends JavaPlugin implements Listener {
         if (folia) {
             globalRegionScheduler = Bukkit.getServer().getGlobalRegionScheduler();
             globalRegionScheduler.runAtFixedRate(this,
-                    scheduledTask -> timer(), 20 * 60, 20 * 60);
+                    scheduledTask -> tick(), 20 * 60, 20 * 60);
         } else {
             bukkitScheduler = Bukkit.getServer().getScheduler();
-            bukkitScheduler.runTaskTimer(this, this::timer, 0, 20 * 60);
+            bukkitScheduler.runTaskTimer(this, this::tick, 0, 20 * 60);
         }
         super.onEnable();
     }
 
-    private void timer() {
+    private void tick() {
         warning = new HashMap<>();
 
         if (spawnTime > 0) spawnTime--;
@@ -288,7 +288,7 @@ public class Main extends JavaPlugin implements Listener {
                 } else {
                     int baseCount = 0;
                     try {
-                        baseCount += Integer.parseInt(Objects.requireNonNull(getEntityName(entities[base]).replace(color("&cx"),"")));
+                        baseCount += Integer.parseInt(getEntityName(entities[base]).replace(color("&cx"),""));
                     } catch (NumberFormatException ignored) {
                     }
                     count += baseCount;
@@ -373,23 +373,21 @@ public class Main extends JavaPlugin implements Listener {
     private void redstoneCheck(Location loc) {
         if (getConfig().getBoolean("redstoneClock") &&
                 redstone.containsKey(loc) &&
-                !getConfig().getStringList("redstoneDisabledWorld").contains(Objects.requireNonNull(loc.getWorld()).getName())) {
+                !getConfig().getStringList("redstoneDisabledWorld").contains(loc.getWorld().getName())) {
             long time = System.currentTimeMillis() - redstone.get(loc);
             long redstoneDely = getConfig().getInt("redstoneDely", 500);
             if (time > 1 && time < redstoneDely) {
-                if (warning.containsKey(loc)) {
-                    int count = warning.get(loc) + 1;
-                    if (count >= getConfig().getInt("redstoneHold", 10)) {
-                        warning.remove(loc);
-                        redstone.remove(loc);
-                        removeRedstoneBlock(loc.getBlock());
-                        if (getConfig().getBoolean("redstoneLightning", true)) loc.getWorld().strikeLightningEffect(loc);
-                        if (getConfig().getBoolean("redstoneWarning", true)) outPut("&c检测到" + time + "ms红石高频 " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ());
-                    } else {
-                        warning.put(loc, count);
-                    }
+                Integer count = warning.getOrDefault(loc, 0);
+                if (count == null) count = 0;
+                count++;
+                if (count >= getConfig().getInt("redstoneHold", 10)) {
+                    warning.remove(loc);
+                    redstone.remove(loc);
+                    removeRedstoneBlock(loc.getBlock());
+                    if (getConfig().getBoolean("redstoneLightning", true)) loc.getWorld().strikeLightningEffect(loc);
+                    if (getConfig().getBoolean("redstoneWarning", true)) outPut("&c检测到" + time + "ms红石高频 " + loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ());
                 } else {
-                    warning.put(loc, 1);
+                    warning.put(loc, count);
                 }
             } else if (time > (redstoneDely * getConfig().getInt("redstoneHold", 20))) {
                 warning.remove(loc);
