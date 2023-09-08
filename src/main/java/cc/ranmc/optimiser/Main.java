@@ -85,6 +85,7 @@ public class Main extends JavaPlugin implements Listener {
             globalRegionScheduler = Bukkit.getServer().getGlobalRegionScheduler();
             globalRegionScheduler.runAtFixedRate(this,
                     scheduledTask -> tick(), 20 * 60, 20 * 60);
+            getConfig().set("stacker", false);
         } else {
             bukkitScheduler = Bukkit.getServer().getScheduler();
             bukkitScheduler.runTaskTimer(this, this::tick, 0, 20 * 60);
@@ -199,57 +200,6 @@ public class Main extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    public void onEntityBreed(EntityBreedEvent event) {
-        if (event.isCancelled()) return;
-        if (getConfig().getBoolean("mob") && event.getFather() instanceof Breedable) {
-            event.setCancelled(isSpawnable(event.getFather()));
-        }
-    }
-
-    private boolean isSpawnable(Entity entity) {
-        if (getConfig().getStringList("mobList").contains(entity.getType().toString())) {
-            int num = (int) (Math.random() * 100);
-            if (num > getConfig().getInt("spawnChange")) {
-                return true;
-            } else {
-                Location loc = entity.getLocation();
-                int lx = loc.getBlockX() / 100;
-                int lz = loc.getBlockZ() / 100;
-                if (loc.getBlockX() < 0) {
-                    lx--;
-                }
-                if (loc.getBlockZ() < 0) {
-                    lz--;
-                }
-
-                Entity[] entities = entity.getLocation().getChunk().getEntities();
-                int liveCount = 0;
-                for (Entity e : entities) {
-                    if (e.getType() == e.getType()) {
-                        liveCount++;
-                    }
-                }
-                if (liveCount >= getConfig().getInt("chunkLimit")) {
-                    return true;
-                }
-
-                String name = lx + Objects.requireNonNull(loc.getWorld()).getName() + lz + entity.getType();
-                int count = 0;
-                if (mob.containsKey(name)) count = mob.get(name);
-                if (count >= getConfig().getInt("spawnLimit")) {
-                    return true;
-                } else {
-                    count++;
-                    mob.put(name, count);
-                }
-            }
-        }
-        return false;
-    }
-
-
-
     /**
      * 生物生成时间
      */
@@ -270,7 +220,44 @@ public class Main extends JavaPlugin implements Listener {
 
         // 限制生物过多
         if (getConfig().getBoolean("mob") && !REASONS.contains(event.getSpawnReason())) {
-            event.setCancelled(isSpawnable(entity));
+            if (getConfig().getStringList("mobList").contains(entity.getType().toString())) {
+                int num = (int) (Math.random() * 100);
+                if (num > getConfig().getInt("spawnChange")) {
+                    event.setCancelled(true);
+                } else {
+                    Location loc = event.getLocation();
+                    int lx = loc.getBlockX() / 100;
+                    int lz = loc.getBlockZ() / 100;
+                    if (loc.getBlockX() < 0) {
+                        lx--;
+                    }
+                    if (loc.getBlockZ() < 0) {
+                        lz--;
+                    }
+
+                    Entity[] entities = event.getLocation().getChunk().getEntities();
+                    int liveCount = 0;
+                    for (Entity e : entities) {
+                        if (e.getType() == entity.getType()) {
+                            liveCount++;
+                        }
+                    }
+                    if (liveCount >= getConfig().getInt("chunkLimit")) {
+                        event.setCancelled(true);
+                        return;
+                    }
+
+                    String name = lx + Objects.requireNonNull(loc.getWorld()).getName() + lz + entity.getType();
+                    int count = 0;
+                    if (mob.containsKey(name)) count = mob.get(name);
+                    if (count >= getConfig().getInt("spawnLimit")) {
+                        event.setCancelled(true);
+                    } else {
+                        count++;
+                        mob.put(name, count);
+                    }
+                }
+            }
         }
 
         // 生物堆叠器
