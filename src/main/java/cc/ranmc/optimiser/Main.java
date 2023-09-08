@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Breedable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -19,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -48,7 +50,7 @@ public class Main extends JavaPlugin implements Listener {
     private GlobalRegionScheduler globalRegionScheduler;
     private BukkitScheduler bukkitScheduler;
 
-    //不会限制的生成方式
+    // 不会限制的生成方式
     private static final List<CreatureSpawnEvent.SpawnReason> REASONS = Arrays.asList(
             CreatureSpawnEvent.SpawnReason.METAMORPHOSIS,
             CreatureSpawnEvent.SpawnReason.BUILD_IRONGOLEM,
@@ -197,13 +199,64 @@ public class Main extends JavaPlugin implements Listener {
         }
     }
 
+    @EventHandler
+    public void onEntityBreed(EntityBreedEvent event) {
+        if (event.isCancelled()) return;
+        if (getConfig().getBoolean("mob") && event.getFather() instanceof Breedable) {
+            event.setCancelled(isSpawnable(event.getFather()));
+        }
+    }
+
+    private boolean isSpawnable(Entity entity) {
+        if (getConfig().getStringList("mobList").contains(entity.getType().toString())) {
+            int num = (int) (Math.random() * 100);
+            if (num > getConfig().getInt("spawnChange")) {
+                return true;
+            } else {
+                Location loc = entity.getLocation();
+                int lx = loc.getBlockX() / 100;
+                int lz = loc.getBlockZ() / 100;
+                if (loc.getBlockX() < 0) {
+                    lx--;
+                }
+                if (loc.getBlockZ() < 0) {
+                    lz--;
+                }
+
+                Entity[] entities = entity.getLocation().getChunk().getEntities();
+                int liveCount = 0;
+                for (Entity e : entities) {
+                    if (e.getType() == e.getType()) {
+                        liveCount++;
+                    }
+                }
+                if (liveCount >= getConfig().getInt("chunkLimit")) {
+                    return true;
+                }
+
+                String name = lx + Objects.requireNonNull(loc.getWorld()).getName() + lz + entity.getType();
+                int count = 0;
+                if (mob.containsKey(name)) count = mob.get(name);
+                if (count >= getConfig().getInt("spawnLimit")) {
+                    return true;
+                } else {
+                    count++;
+                    mob.put(name, count);
+                }
+            }
+        }
+        return false;
+    }
+
+
+
     /**
      * 生物生成时间
      */
 
     @EventHandler
     public void onEntitySpawnEvent(CreatureSpawnEvent event) {
-        Entity en = event.getEntity();
+        Entity entity = event.getEntity();
         if (event.isCancelled()) return;
 
         // 限制刷怪笼
@@ -215,63 +268,22 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        EntityType et = event.getEntityType();
-
         // 限制生物过多
         if (getConfig().getBoolean("mob") && !REASONS.contains(event.getSpawnReason())) {
-            List<String> spawnList = getConfig().getStringList("mobList");
-            if (spawnList.contains(et.toString())) {
-                int num = (int) (Math.random() * 100);
-                if (num > getConfig().getInt("spawnChange")) {
-                    event.setCancelled(true);
-                } else {
-                    Location loc = en.getLocation();
-                    int lx = loc.getBlockX() / 100;
-                    int lz = loc.getBlockZ() / 100;
-                    if (loc.getBlockX() < 0) {
-                        lx--;
-                    }
-                    if (loc.getBlockZ() < 0) {
-                        lz--;
-                    }
-
-                    Entity[] entities = en.getLocation().getChunk().getEntities();
-                    int liveCount = 0;
-                    for (Entity entity : entities) {
-                        if (entity.getType() == et) {
-                            liveCount++;
-                        }
-                    }
-                    if (liveCount >= getConfig().getInt("chunkLimit")) {
-                        event.setCancelled(true);
-                        return;
-                    }
-
-                    String name = lx + Objects.requireNonNull(loc.getWorld()).getName() + lz + et;
-                    int count = 0;
-                    if (mob.containsKey(name)) count = mob.get(name);
-                    if (count >= getConfig().getInt("spawnLimit")) {
-                        event.setCancelled(true);
-                    } else {
-                        count++;
-                        mob.put(name, count);
-                    }
-                }
-            }
-
+            event.setCancelled(isSpawnable(entity));
         }
 
         // 生物堆叠器
         if (getConfig().getBoolean("stacker") && tps < tpsCheck) {
-            if (stackerList.contains(et.toString())) {
-                Entity[] entities = en.getLocation().getChunk().getEntities();
-                if (entities.length==0) return;
+            if (stackerList.contains(event.getEntityType().toString())) {
+                Entity[] entities = entity.getLocation().getChunk().getEntities();
+                if (entities.length == 0) return;
                 int liveCount = 0;
                 int log = 0;
                 int count = 0;
                 int base = 0;
                 for (int i = 0; i < entities.length; i++) {
-                    if (et.equals(entities[i].getType())) {
+                    if (event.getEntityType().equals(entities[i].getType())) {
                         String name = getEntityName(entities[i]);
                         if (name == null) {
                             liveCount++;
@@ -282,7 +294,7 @@ public class Main extends JavaPlugin implements Listener {
                         } else if (name.contains(color("&cx"))) base = i;
                     }
                 }
-                if (base==0) {
+                if (base == 0) {
                     count++;
                     if (!entities[log].isDead() && count>1) setEntityName(entities[log], color("&cx")+count);
                 } else {
