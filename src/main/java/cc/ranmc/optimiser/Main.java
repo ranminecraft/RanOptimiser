@@ -45,7 +45,7 @@ public class Main extends JavaPlugin implements Listener {
     private int spawnTime = 1;
     //红石高频
     private final Map<Location, Long> redstone = new HashMap<>();
-    private Map<Location, Integer> warning = new TreeMap<>();
+    private Map<Location, Integer> warning = new HashMap<>();
     private final boolean folia = isFolia();
     private GlobalRegionScheduler globalRegionScheduler;
     private BukkitScheduler bukkitScheduler;
