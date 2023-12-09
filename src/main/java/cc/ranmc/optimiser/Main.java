@@ -364,7 +364,7 @@ public class Main extends JavaPlugin implements Listener {
                     block.getLocation(),
                     scheduledTask -> block.setType(Material.AIR));
         } else {
-            Bukkit.getServer().getScheduler().runTaskAsynchronously(
+            Bukkit.getServer().getScheduler().runTask(
                     this, () -> block.setType(Material.AIR));
         }
     }
