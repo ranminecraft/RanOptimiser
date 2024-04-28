@@ -26,17 +26,18 @@
         </dependency>
 
         <dependency>
+            <groupId>cc.ranmc</groupId>
+            <artifactId>Ranmc</artifactId>
+            <version>Release 20.0</version>
+            <scope>system</scope>
+            <systemPath>D:/Project/Ranmc.jar</systemPath>
+        </dependency>
+
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>RELEASE</version>
             <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>me.clip</groupId>
-            <artifactId>placeholderapi</artifactId>
-            <version>2.11.3</version>
-            <scope>provided</scope>
         </dependency>
 
     </dependencies>

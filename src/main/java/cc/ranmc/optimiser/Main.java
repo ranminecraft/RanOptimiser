@@ -1,8 +1,8 @@
 package cc.ranmc.optimiser;
 
+import cc.ranmc.utils.TimerUtil;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import lombok.Getter;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -10,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Breedable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -20,7 +19,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -102,11 +100,7 @@ public class Main extends JavaPlugin implements Listener {
             mob = new HashMap<>();
         }
 
-        try {
-            tps = Double.parseDouble(PlaceholderAPI.setPlaceholders(null, "%server_tps_1%"));
-        } catch (Exception e) {
-            //e.printStackTrace();
-        }
+        tps = TimerUtil.getTps();
 
         if (getConfig().getBoolean("stacker") && tps >= tpsCheck) {
             for (Player player : Bukkit.getOnlinePlayers()) {
