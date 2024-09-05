@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Main extends JavaPlugin implements Listener {
 
@@ -43,7 +44,7 @@ public class Main extends JavaPlugin implements Listener {
     private int spawnTime = 1;
     //红石高频
     private final Map<Location, Long> redstone = new HashMap<>();
-    private Map<Location, Integer> warning = new HashMap<>();
+    private Map<Location, Integer> warning = new ConcurrentHashMap<>();
     private final boolean folia = isFolia();
     private GlobalRegionScheduler globalRegionScheduler;
     private BukkitScheduler bukkitScheduler;
@@ -364,6 +365,7 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void redstoneCheck(Location loc) {
+        if (!loc.getChunk().isLoaded()) return;
         if (getConfig().getBoolean("redstoneClock") &&
                 redstone.containsKey(loc) &&
                 !getConfig().getStringList("redstoneDisabledWorld")
