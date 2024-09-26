@@ -370,7 +370,9 @@ public class Main extends JavaPlugin implements Listener {
                 redstone.containsKey(loc) &&
                 !getConfig().getStringList("redstoneDisabledWorld")
                         .contains(loc.getWorld().getName())) {
-            long time = System.currentTimeMillis() - redstone.get(loc);
+            Long lastUpdateTime = redstone.get(loc);
+            if (lastUpdateTime == null) return;
+            long time = System.currentTimeMillis() - lastUpdateTime;
             long redstoneDely = getConfig().getInt("redstoneDely", 500);
             if (time > 1 && time < redstoneDely) {
                 int count = warning.getOrDefault(loc, 0) + 1;
