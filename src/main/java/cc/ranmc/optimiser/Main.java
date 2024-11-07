@@ -132,17 +132,13 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void tickVillagerAI() {
-        boolean disableVillagerAI = getConfig().getBoolean("disableVillagerAI", false);
+        if(!getConfig().getBoolean("disableVillagerAI", false)) return;
         double disableVillagerAITps = getConfig().getDouble("disableVillagerAITps", 10);
         List<String> disableVillagerAIWorlds = getConfig().getStringList("disableVillagerAIWorld");
         boolean enableAI = (tps >= disableVillagerAITps) != villagerAI;
-        if (disableVillagerAI) {
-            for (String worldName : disableVillagerAIWorlds) {
-                World world = Bukkit.getWorld(worldName);
-                if (world != null) {
-                    setVillagersAI(world, enableAI);
-                }
-            }
+        for (String worldName : disableVillagerAIWorlds) {
+            World world = Bukkit.getWorld(worldName);
+            if (world != null) setVillagersAI(world, enableAI);
         }
     }
 
