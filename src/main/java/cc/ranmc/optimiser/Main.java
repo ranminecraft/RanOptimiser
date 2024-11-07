@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -48,6 +49,7 @@ public class Main extends JavaPlugin implements Listener {
     private final boolean folia = isFolia();
     private GlobalRegionScheduler globalRegionScheduler;
     private BukkitScheduler bukkitScheduler;
+    private boolean villagerAI = true;
 
     // 不会限制的生成方式
     private static final List<CreatureSpawnEvent.SpawnReason> REASONS = Arrays.asList(
@@ -123,6 +125,31 @@ public class Main extends JavaPlugin implements Listener {
                         setEntityName(entity, null);
                     }
                 }
+            }
+        }
+
+        tickVillagerAI();
+    }
+
+    private void tickVillagerAI() {
+        boolean disableVillagerAI = getConfig().getBoolean("disableVillagerAI", false);
+        double disableVillagerAITps = getConfig().getDouble("disableVillagerAITps", 10);
+        List<String> disableVillagerAIWorlds = getConfig().getStringList("disableVillagerAIWorld");
+        boolean enableAI = (tps >= disableVillagerAITps) != villagerAI;
+        if (disableVillagerAI) {
+            for (String worldName : disableVillagerAIWorlds) {
+                World world = Bukkit.getWorld(worldName);
+                if (world != null) {
+                    setVillagersAI(world, enableAI);
+                }
+            }
+        }
+    }
+
+    private void setVillagersAI(World world, boolean enableAI) {
+        for (LivingEntity entity : world.getLivingEntities()) {
+            if (entity.getType() == EntityType.VILLAGER) {
+                entity.setAI(enableAI);
             }
         }
     }

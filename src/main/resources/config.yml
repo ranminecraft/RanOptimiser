@@ -94,3 +94,11 @@ snowballDisappearDely: 60
 # 一个区块内最大船数量
 boatLimit: true
 chunkBoatLimit: 8
+
+# 当 TPS 太低时关闭村民 AI
+disableVillagerAI: true
+# 关闭村民 AI 当 TPS 低于这个数值
+disableVillagerAITps: 10
+# 关闭村民 AI 受影响世界
+disableVillagerAIWorld:
+  - world
