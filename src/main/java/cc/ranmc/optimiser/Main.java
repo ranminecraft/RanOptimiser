@@ -49,7 +49,6 @@ public class Main extends JavaPlugin implements Listener {
     private final boolean folia = isFolia();
     private GlobalRegionScheduler globalRegionScheduler;
     private BukkitScheduler bukkitScheduler;
-    private boolean villagerAI = true;
 
     // 不会限制的生成方式
     private static final List<CreatureSpawnEvent.SpawnReason> REASONS = Arrays.asList(
@@ -86,10 +85,13 @@ public class Main extends JavaPlugin implements Listener {
             globalRegionScheduler = Bukkit.getServer().getGlobalRegionScheduler();
             globalRegionScheduler.runAtFixedRate(this,
                     scheduledTask -> tick(), 20 * 60, 20 * 60);
+            globalRegionScheduler.runAtFixedRate(this,
+                    scheduledTask -> tickVillagerAI(), 20 * 60 * 10, 20 * 60 * 10);
             getConfig().set("stacker", false);
         } else {
             bukkitScheduler = Bukkit.getServer().getScheduler();
             bukkitScheduler.runTaskTimer(this, this::tick, 0, 20 * 60);
+            bukkitScheduler.runTaskTimer(this, this::tickVillagerAI, 0, 20 * 60 * 5);
         }
         super.onEnable();
     }
@@ -127,15 +129,13 @@ public class Main extends JavaPlugin implements Listener {
                 }
             }
         }
-
-        tickVillagerAI();
     }
 
     private void tickVillagerAI() {
         if(!getConfig().getBoolean("disableVillagerAI", false)) return;
         double disableVillagerAITps = getConfig().getDouble("disableVillagerAITps", 10);
         List<String> disableVillagerAIWorlds = getConfig().getStringList("disableVillagerAIWorld");
-        boolean enableAI = (tps >= disableVillagerAITps) != villagerAI;
+        boolean enableAI = tps >= disableVillagerAITps;
         for (String worldName : disableVillagerAIWorlds) {
             World world = Bukkit.getWorld(worldName);
             if (world != null) setVillagersAI(world, enableAI);
