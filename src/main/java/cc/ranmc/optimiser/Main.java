@@ -77,7 +77,7 @@ public class Main extends JavaPlugin implements Listener {
         // 检查更新
         //updateCheck();
 
-        // 注册 event
+        // 注册 Event
         Bukkit.getPluginManager().registerEvents(this, this);
 
         // 计时器
@@ -306,8 +306,7 @@ public class Main extends JavaPlugin implements Listener {
                     int baseCount = 0;
                     try {
                         baseCount += Integer.parseInt(getEntityName(entities[base]).replace(color("&cx"),""));
-                    } catch (NumberFormatException ignored) {
-                    }
+                    } catch (NumberFormatException ignored) {}
                     count += baseCount;
                     if (!entities[base].isDead() && count>1) setEntityName(entities[base], color("&cx")+count);
                 }
@@ -338,7 +337,7 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityDeathEvent(EntityDeathEvent event){
-        //生物堆叠器分离
+        // 生物堆叠器分离
         if (getConfig().getBoolean("stacker")) {
             Entity entity = event.getEntity();
             String name = getEntityName(entity);
@@ -349,11 +348,11 @@ public class Main extends JavaPlugin implements Listener {
                     count += Integer.parseInt(name.replace(color("&cx"),""));
                 } catch (NumberFormatException ignored) {
                 }
-                if (count>1) {
+                if (count > 1) {
                     count--;
                     Location location = entity.getLocation();
                     LivingEntity newMob = (LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
-                    if (count>1) setEntityName(newMob, color("&cx") + count);
+                    if (count > 1) setEntityName(newMob, color("&cx") + count);
                 }
             }
         }
