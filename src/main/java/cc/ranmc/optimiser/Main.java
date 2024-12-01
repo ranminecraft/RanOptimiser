@@ -181,7 +181,7 @@ public class Main extends JavaPlugin implements Listener {
     public void onProjectileLaunchEvent(ProjectileLaunchEvent event) {
 
         if (getConfig().getBoolean("snowball", true) &&
-                event.getEntityType() == EntityType.SNOWBALL) {
+                (event.getEntityType() == EntityType.SNOWBALL || event.getEntityType() == EntityType.POTION)) {
             int delay = getConfig().getInt("snowballDisappearDely", 60);
             Entity entity = event.getEntity();
             if (folia) {
