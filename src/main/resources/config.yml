@@ -102,3 +102,7 @@ disableVillagerAITps: 10
 # 关闭村民 AI 受影响世界
 disableVillagerAIWorld:
   - world
+
+# 关闭生物自然生成世界
+disableEntitySpawnWorld:
+  - city

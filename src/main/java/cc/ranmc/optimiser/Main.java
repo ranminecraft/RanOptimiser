@@ -227,6 +227,8 @@ public class Main extends JavaPlugin implements Listener {
         Entity entity = event.getEntity();
         if (event.isCancelled()) return;
 
+
+
         // 限制刷怪笼
         if (getConfig().getBoolean("spawner") && event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.SPAWNER)) {
             int i = (int) (Math.random() * 100);
@@ -238,6 +240,11 @@ public class Main extends JavaPlugin implements Listener {
 
         // 限制生物过多
         if (getConfig().getBoolean("mob") && !REASONS.contains(event.getSpawnReason())) {
+            if (getConfig().getStringList("disableEntitySpawnWorld").contains(entity.getWorld().getName())) {
+                event.setCancelled(true);
+                return;
+            }
+
             if (getConfig().getStringList("mobList").contains(entity.getType().toString())) {
                 int num = (int) (Math.random() * 100);
                 if (num > getConfig().getInt("spawnChange")) {
