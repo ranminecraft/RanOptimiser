@@ -227,8 +227,6 @@ public class Main extends JavaPlugin implements Listener {
         Entity entity = event.getEntity();
         if (event.isCancelled()) return;
 
-
-
         // 限制刷怪笼
         if (getConfig().getBoolean("spawner") && event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.SPAWNER)) {
             int i = (int) (Math.random() * 100);
