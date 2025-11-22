@@ -9,12 +9,10 @@
     <version>Release</version>
 
     <repositories>
-
         <repository>
-            <id>placeholderapi</id>
-            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
-
     </repositories>
 
     <dependencies>
