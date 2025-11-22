@@ -1,6 +1,5 @@
 package cc.ranmc.optimiser;
 
-import cc.ranmc.utils.TimerUtil;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -106,7 +105,7 @@ public class Main extends JavaPlugin implements Listener {
             mob = new HashMap<>();
         }
 
-        tps = TimerUtil.getTps();
+        tps = Bukkit.getServer().getTPS()[0];
 
         if (getConfig().getBoolean("stacker") && tps >= tpsCheck) {
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -455,7 +454,9 @@ public class Main extends JavaPlugin implements Listener {
      * 指令输入
      */
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, Command cmd, @NotNull String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, Command cmd,
+                             @NotNull String label,
+                             String @NotNull [] args) {
         if (cmd.getName().equalsIgnoreCase("ro")) {
             if (args.length == 1 && args[0].equalsIgnoreCase("reload")){
                 if (sender.hasPermission("ro.admin")) {
