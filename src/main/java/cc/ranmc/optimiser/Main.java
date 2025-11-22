@@ -4,6 +4,7 @@ import cc.ranmc.utils.TimerUtil;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -74,8 +75,8 @@ public class Main extends JavaPlugin implements Listener {
         // 加载数据
         loadConfig();
 
-        // 检查更新
-        //updateCheck();
+        // BStats
+        new Metrics(this, 28106);
 
         // 注册 Event
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -181,7 +182,9 @@ public class Main extends JavaPlugin implements Listener {
     public void onProjectileLaunchEvent(ProjectileLaunchEvent event) {
 
         if (getConfig().getBoolean("snowball", true) &&
-                (event.getEntityType() == EntityType.SNOWBALL || event.getEntityType() == EntityType.POTION)) {
+                (event.getEntityType() == EntityType.SNOWBALL ||
+                        event.getEntityType() == EntityType.LINGERING_POTION ||
+                        event.getEntityType() == EntityType.SPLASH_POTION)) {
             int delay = getConfig().getInt("snowballDisappearDely", 60);
             Entity entity = event.getEntity();
             if (folia) {
