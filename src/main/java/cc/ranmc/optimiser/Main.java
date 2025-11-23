@@ -373,7 +373,6 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
         redstoneCheck(event.getBlock().getLocation());
-
     }
 
     private void removeRedstoneBlock(Block block) {
@@ -426,7 +425,6 @@ public class Main extends JavaPlugin implements Listener {
     public void onBlockRedstoneEvent(BlockRedstoneEvent event) {
         if (getConfig().getBoolean("redstone")) {
             redstoneCheck(event.getBlock().getLocation());
-
             if (tps < 16 && event.getBlock().getLocation().getBlockY() > 200) {
                 event.setNewCurrent(0);
                 return;
@@ -443,7 +441,6 @@ public class Main extends JavaPlugin implements Listener {
                 event.setNewCurrent(0);
             }
         }
-
     }
 
     /**
