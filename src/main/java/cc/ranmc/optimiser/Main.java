@@ -240,10 +240,6 @@ public class Main extends JavaPlugin implements Listener {
 
         // 限制生物过多
         if (getConfig().getBoolean("mob") && !REASONS.contains(event.getSpawnReason())) {
-            if (getConfig().getStringList("disableEntitySpawnWorld").contains(entity.getWorld().getName())) {
-                event.setCancelled(true);
-                return;
-            }
 
             if (getConfig().getStringList("mobList").contains(entity.getType().toString())) {
                 int num = (int) (Math.random() * 100);
