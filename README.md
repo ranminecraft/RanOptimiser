@@ -14,7 +14,7 @@
 
 ## 🧩 功能介绍
 
-🐾 stacker 生物堆叠器
+### 🐾 stacker 生物堆叠器
 
 开启后生物过于密集时堆叠
 
@@ -24,7 +24,7 @@
 
 当 TPS 高于设置值自动分离
 
-🧱 spawner 刷怪笼限制
+### 🧱 spawner 刷怪笼限制
 
 如果你服务器有很多刷怪笼
 
@@ -32,7 +32,7 @@
 
 减少刷怪笼生成的生物速率
 
-🐗 mob 生成生物限制
+### 🐗 mob 生成生物限制
 
 对于刷怪塔很有用
 
@@ -42,7 +42,7 @@
 
 每天只能刷多少个
 
-🔌 redstone 红石限制器
+### 🔌 redstone 红石限制器
 
 不对压力板或按钮开门有影响
 
@@ -56,18 +56,18 @@ TPS < 12：限制高度 100 以上红石
 
 TPS < 10：限制全部红石
 
-🕹 observerPiston 限制活塞推动侦测器（高频飞行器）
+### 🕹 observerPiston 限制活塞推动侦测器（高频飞行器）
 
-⏱ redstoneClock 高频限制器
+### ⏱ redstoneClock 高频限制器
 
 对于高频红石进行清除
 
-❄ snowball 防止雪球实体禁人塔
+### ❄ snowball 防止雪球实体禁人塔
 
 雪球应该在丢出后多久被清除
 
-⛵ boatLimit 防止船实体禁人塔
+### ⛵ boatLimit 防止船实体禁人塔
 
-🧠 disableVillagerAI
+### 🧠 disableVillagerAI
 
 当 TPS 太低时关闭村民 AI
