@@ -424,7 +424,7 @@ public class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onBlockRedstoneEvent(BlockRedstoneEvent event) {
         if (getConfig().getBoolean("redstone")) {
-            redstoneCheck(event.getBlock().getLocation());
+            if (event.getNewCurrent() > 0) redstoneCheck(event.getBlock().getLocation());
             if (tps < 16 && event.getBlock().getLocation().getBlockY() > 200) {
                 event.setNewCurrent(0);
                 return;
