@@ -230,7 +230,8 @@ public class Main extends JavaPlugin implements Listener {
         if (event.isCancelled()) return;
 
         // 限制刷怪笼
-        if (getConfig().getBoolean("spawner") && event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.SPAWNER)) {
+        if (getConfig().getBoolean("spawner") &&
+                event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.SPAWNER)) {
             int i = (int) (Math.random() * 100);
             if (i > getConfig().getInt("spawnerChange")){
                 event.setCancelled(true);
@@ -424,7 +425,9 @@ public class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onBlockRedstoneEvent(BlockRedstoneEvent event) {
         if (getConfig().getBoolean("redstone")) {
-            if (event.getNewCurrent() > 0) redstoneCheck(event.getBlock().getLocation());
+            if (event.getNewCurrent() > 0 && event.getOldCurrent() == 0) {
+                redstoneCheck(event.getBlock().getLocation());
+            }
             if (tps < 16 && event.getBlock().getLocation().getBlockY() > 200) {
                 event.setNewCurrent(0);
                 return;
