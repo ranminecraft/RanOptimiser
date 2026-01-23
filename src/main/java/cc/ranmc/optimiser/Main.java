@@ -5,6 +5,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -76,19 +77,19 @@ public class Main extends JavaPlugin implements Listener {
         loadConfig();
 
         // BStats
-        new Metrics(this, 28106);
+        //new Metrics(this, 28106);
 
         // 注册 Event
         Bukkit.getPluginManager().registerEvents(this, this);
 
         // 计时器
         if (folia) {
+            getConfig().set("stacker", false);
             globalRegionScheduler = Bukkit.getServer().getGlobalRegionScheduler();
             globalRegionScheduler.runAtFixedRate(this,
                     scheduledTask -> tick(), 20 * 60, 20 * 60);
             globalRegionScheduler.runAtFixedRate(this,
                     scheduledTask -> tickVillagerAI(), 20 * 60 * 10, 20 * 60 * 10);
-            getConfig().set("stacker", false);
         } else {
             bukkitScheduler = Bukkit.getServer().getScheduler();
             bukkitScheduler.runTaskTimer(this, this::tick, 0, 20 * 60);
@@ -108,26 +109,77 @@ public class Main extends JavaPlugin implements Listener {
 
         tps = Bukkit.getServer().getTPS()[0];
 
-        if (tps < tpsCheck) return;
-        for (World world : Bukkit.getWorlds()) {
-            world.getChunkAtAsync(world.getSpawnLocation()).thenAccept(chunk -> {
-                for (Entity entity : world.getEntities()) {
-                    if (stackerList.contains(entity.getType().name())) continue;
-                    String name = getEntityName(entity);
-                    if (name != null && name.contains(color("&cx"))) {
-                        int count = 0;
-                        try {
-                            count += Integer.parseInt(name.replace(color("&cx"), ""));
-                        } catch (NumberFormatException ignored) {}
-                        for (int ii = 1; ii < count; ii++) {
-                            Location location = entity.getLocation();
-                            Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
+        // 生物堆叠器
+        if (tps > tpsCheck) {
+            // 分离
+            for (World world : Bukkit.getWorlds()) {
+                world.getChunkAtAsync(world.getSpawnLocation()).thenAccept(chunk -> {
+                    for (Entity entity : world.getEntities()) {
+                        if (stackerList.contains(entity.getType().name())) {
+                            String name = getEntityName(entity);
+                            if (name != null && name.contains(color("&cx"))) {
+                                int count = 0;
+                                try {
+                                    count += Integer.parseInt(name.replace(color("&cx"), ""));
+                                } catch (NumberFormatException ignored) {
+                                }
+                                for (int ii = 1; ii < count; ii++) {
+                                    Location location = entity.getLocation();
+                                    Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
+                                }
+                            }
+                            setEntityName(entity, null);
                         }
                     }
-                    setEntityName(entity, null);
+                });
+            }
+        } else if (getConfig().getBoolean("stacker") && tps < tpsCheck) {
+            // 合并
+            for (World world : Bukkit.getWorlds()) {
+                for (Chunk chunk : world.getLoadedChunks()) {
+                    stack(chunk);
                 }
-            });
+            }
         }
+    }
+
+    private void stack(Chunk c) {
+        if (!getConfig().getBoolean("stacker", false)) return;
+        c.getWorld().getChunkAtAsync(c.getBlock(0,0,0)).thenAccept(chunk -> {
+            for (String entityTypeStr : stackerList) {
+                Entity[] entities = chunk.getEntities();
+                if (entities.length == 0) continue;
+                int liveCount = 0;
+                int log = 0;
+                int count = 0;
+                int base = 0;
+                for (int i = 0; i < entities.length; i++) {
+                    if (entityTypeStr.equals(entities[i].getType().toString())) {
+                        String name = getEntityName(entities[i]);
+                        if (name == null) {
+                            liveCount++;
+                            if (liveCount > 1) {
+                                entities[i].remove();
+                                count++;
+                            } else if (liveCount == 1) log = i;
+                        } else if (name.startsWith(color("&cx"))) base = i;
+                    }
+                }
+                if (base == 0) {
+                    count++;
+                    if (!entities[log].isDead() && count > 1) setEntityName(entities[log], color("&cx") + count);
+                } else {
+                    int baseCount = 0;
+                    try {
+                        baseCount += Integer.parseInt(getEntityName(entities[base]).replace(color("&cx"), ""));
+                    } catch (NumberFormatException ignored) {
+                    }
+                    count += baseCount;
+                    if (!entities[base].isDead() && count > 1) setEntityName(entities[base], color("&cx") + count);
+                }
+            }
+
+        });
     }
 
     private void tickVillagerAI() {
@@ -281,40 +333,7 @@ public class Main extends JavaPlugin implements Listener {
             }
         }
 
-        // 生物堆叠器
-        if (getConfig().getBoolean("stacker") && tps < tpsCheck) {
-            if (stackerList.contains(event.getEntityType().toString())) {
-                Entity[] entities = entity.getLocation().getChunk().getEntities();
-                if (entities.length == 0) return;
-                int liveCount = 0;
-                int log = 0;
-                int count = 0;
-                int base = 0;
-                for (int i = 0; i < entities.length; i++) {
-                    if (event.getEntityType().equals(entities[i].getType())) {
-                        String name = getEntityName(entities[i]);
-                        if (name == null) {
-                            liveCount++;
-                            if (liveCount > 1) {
-                                entities[i].remove();
-                                count++;
-                            } else if (liveCount == 1) log = i;
-                        } else if (name.contains(color("&cx"))) base = i;
-                    }
-                }
-                if (base == 0) {
-                    count++;
-                    if (!entities[log].isDead() && count>1) setEntityName(entities[log], color("&cx")+count);
-                } else {
-                    int baseCount = 0;
-                    try {
-                        baseCount += Integer.parseInt(getEntityName(entities[base]).replace(color("&cx"),""));
-                    } catch (NumberFormatException ignored) {}
-                    count += baseCount;
-                    if (!entities[base].isDead() && count>1) setEntityName(entities[base], color("&cx") + count);
-                }
-            }
-        }
+        stack(entity.getChunk());
     }
 
     public void setEntityName(Entity entity, String name) {

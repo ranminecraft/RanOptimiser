@@ -2,15 +2,12 @@
 prefix: '&b性能优化器>>>'
 
 # 生物堆叠器
-stacker: true
+# 不支持Folia服务器
+# 此功能对玩家体验影响较大
+stacker: false
 # tps低于这个阈值开始堆叠生物
 # tps高于这个阈值开始分离生物
 tpsCheck: 12
-# 分离检测区间
-# 调大该值让服务器减少压力
-# 但是生物分离的时间会变慢
-# 单位:tick
-split: 200
 # 堆叠生物列表
 # 不知道生物名?点击下面链接
 # https://bukkit.windit.net/javadoc/org/bukkit/entity/EntityType.html
