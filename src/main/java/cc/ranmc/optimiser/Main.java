@@ -27,6 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.print.Paper;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -107,27 +108,25 @@ public class Main extends JavaPlugin implements Listener {
 
         tps = Bukkit.getServer().getTPS()[0];
 
-        if (getConfig().getBoolean("stacker") && tps >= tpsCheck) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                Entity[] entities = player.getLocation().getChunk().getEntities();
-                for (Entity entity : entities) {
-                    if (stackerList.contains(entity.getType().name())) {
-                        String name = getEntityName(entity);
-                        if (name != null && name.contains(color("&cx"))) {
-                            int count = 0;
-                            try {
-                                count += Integer.parseInt(name.replace(color("&cx"), ""));
-                            } catch (NumberFormatException ignored) {
-                            }
-                            for (int ii = 1; ii < count; ii++) {
-                                Location location = entity.getLocation();
-                                Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
-                            }
+        if (tps < tpsCheck) return;
+        for (World world : Bukkit.getWorlds()) {
+            world.getChunkAtAsync(world.getSpawnLocation()).thenAccept(chunk -> {
+                for (Entity entity : world.getEntities()) {
+                    if (stackerList.contains(entity.getType().name())) continue;
+                    String name = getEntityName(entity);
+                    if (name != null && name.contains(color("&cx"))) {
+                        int count = 0;
+                        try {
+                            count += Integer.parseInt(name.replace(color("&cx"), ""));
+                        } catch (NumberFormatException ignored) {}
+                        for (int ii = 1; ii < count; ii++) {
+                            Location location = entity.getLocation();
+                            Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
                         }
-                        setEntityName(entity, null);
                     }
+                    setEntityName(entity, null);
                 }
-            }
+            });
         }
     }
 
@@ -312,7 +311,7 @@ public class Main extends JavaPlugin implements Listener {
                         baseCount += Integer.parseInt(getEntityName(entities[base]).replace(color("&cx"),""));
                     } catch (NumberFormatException ignored) {}
                     count += baseCount;
-                    if (!entities[base].isDead() && count>1) setEntityName(entities[base], color("&cx")+count);
+                    if (!entities[base].isDead() && count>1) setEntityName(entities[base], color("&cx") + count);
                 }
             }
         }
@@ -341,26 +340,22 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onEntityDeathEvent(EntityDeathEvent event){
-        // 生物堆叠器分离
-        if (getConfig().getBoolean("stacker")) {
-            Entity entity = event.getEntity();
-            String name = getEntityName(entity);
-            if (stackerList.contains(event.getEntityType().toString()) &&
-                    name != null && name.contains(color("&cx"))) {
-                int count = 0;
-                try {
-                    count += Integer.parseInt(name.replace(color("&cx"),""));
-                } catch (NumberFormatException ignored) {
-                }
-                if (count > 1) {
-                    count--;
-                    Location location = entity.getLocation();
-                    LivingEntity newMob = (LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
-                    if (count > 1) setEntityName(newMob, color("&cx") + count);
-                }
+        Entity entity = event.getEntity();
+        String name = getEntityName(entity);
+        if (stackerList.contains(event.getEntityType().toString()) &&
+                name != null && name.contains(color("&cx"))) {
+            int count = 0;
+            try {
+                count += Integer.parseInt(name.replace(color("&cx"),""));
+            } catch (NumberFormatException ignored) {
+            }
+            if (count > 1) {
+                count--;
+                Location location = entity.getLocation();
+                LivingEntity newMob = (LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, entity.getType());
+                if (count > 1) setEntityName(newMob, color("&cx") + count);
             }
         }
-
     }
 
     @EventHandler
